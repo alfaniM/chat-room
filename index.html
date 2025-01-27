@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp Chat Room</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="chat-room">
+      <div class="chat-header">WhatsApp Chat Room</div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input">
+        <input type="text" id="message-input" placeholder="Type a message..." />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+
+    <script>
+      // Fetch the chat data from the JSON file
+      fetch('chat.json')
+        .then((response) => response.json())
+        .then((data) => {
+          let chatData = data; // Store the chat data
+          const chatMessages = document.getElementById('chat-messages');
+
+          // Function to display chat messages
+          function displayMessages() {
+            chatMessages.innerHTML = '';
+            chatData.forEach(({ sender, message, timestamp }) => {
+              const messageDiv = document.createElement('div');
+              messageDiv.className = 'message ' + (sender === 'You' ? 'sender' : 'receiver');
+
+              messageDiv.innerHTML = `
+                <div class="avatar">${sender === 'You' ? 'You' : 'Other'}</div>
+                <div class="message-content">
+                  <p>${message}</p>
+                  <div class="timestamp">${timestamp}</div>
+                </div>
+              `;
+              chatMessages.appendChild(messageDiv);
+            });
+
+            // Scroll to the bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }
+
+          // Function to send a message
+          function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const newMessage = messageInput.value.trim();
+
+            if (newMessage) {
+              const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              chatData.push({ sender: 'You', message: newMessage, timestamp: currentTime });
+              messageInput.value = ''; // Clear the input field
+              displayMessages(); // Re-render the chat with the new message
+            }
+          }
+
+          // Attach sendMessage to the Send button click
+          const sendButton = document.getElementById('send-button');
+          sendButton.addEventListener('click', sendMessage);
+
+          // Send message with 'Enter' key without form submission
+          const messageInput = document.getElementById('message-input');
+          messageInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+              event.preventDefault(); // Prevent the default Enter key behavior (form submission)
+              sendMessage();
+            }
+          });
+
+          // Display the initial messages
+          displayMessages();
+        })
+        .catch((error) => {
+          console.error('Error loading chat data:', error);
+        });
+    </script>
+  </body>
+</html>
